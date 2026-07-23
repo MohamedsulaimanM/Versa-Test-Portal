@@ -1,0 +1,24 @@
+<svg viewBox="0 0 240 78" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vg" x1="0%" y1="100%" x2="75%" y2="0%">
+      <stop offset="0%" stop-color="#3FBD28"/>
+      <stop offset="55%" stop-color="#00B09B"/>
+      <stop offset="100%" stop-color="#1BAEE8"/>
+    </linearGradient>
+  </defs>
+  <!-- Versa V mark -->
+  <path fill="url(#vg)" d="
+    M32,76
+    C20,58 4,38 4,24
+    C4,10 12,2 22,2
+    C28,2 32,16 32,24
+    C32,16 36,2 42,2
+    C52,2 60,10 60,24
+    C60,38 44,58 32,76
+    Z
+  "/>
+  <!-- VERSA text -->
+  <text x="72" y="55"
+    font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial Black,Arial,sans-serif"
+    font-weight="900" font-size="50" fill="#111111" letter-spacing="-1">VERSA</text>
+</svg>

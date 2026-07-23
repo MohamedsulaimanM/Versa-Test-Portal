@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Take Test — Versa Test Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <span class="navbar-brand">
+    <img src="images/versa-logo.png" height="40" alt="Versa" style="vertical-align:middle">
+  </span>
+</nav>
+
+<!-- Not Found -->
+<div id="notFound" style="display:none">
+  <div class="empty-state" style="margin-top:5rem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <h3>Test Not Found</h3>
+    <p>This test doesn't exist or is no longer available.</p>
+    <a href="index.html" class="btn btn-primary" style="margin-top:1.25rem">Back to Tests</a>
+  </div>
+</div>
+
+<!-- Registration form -->
+<div id="register" style="display:none">
+  <div class="register-wrap">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3 id="regTestTitle"></h3>
+          <div id="regMeta" style="font-size:.8rem;color:var(--gray-500);margin-top:.25rem"></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <p id="regDescription" style="font-size:.9rem;color:var(--gray-600);margin-bottom:1.25rem"></p>
+
+        <div id="regError" class="alert alert-danger" style="display:none"></div>
+
+        <form id="regForm">
+          <div class="form-group">
+            <label class="form-label" for="nameInput">Full Name <span class="req">*</span></label>
+            <input id="nameInput" type="text" class="form-control" placeholder="Enter your full name" required autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="emailInput">Email Address <span class="req">*</span></label>
+            <input id="emailInput" type="email" class="form-control" placeholder="Enter your email address" required autocomplete="email">
+            <div class="form-hint">Each email address can only attempt this test once.</div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:.5rem">
+            Start Test →
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Test view -->
+<div id="testView" style="display:none">
+  <!-- Sticky top bar -->
+  <div class="test-topbar">
+    <div class="test-topbar-title" id="tvTitle"></div>
+    <div style="display:flex;align-items:center;gap:1rem">
+      <span id="progressText" style="font-size:.8rem;color:var(--gray-500)"></span>
+      <div id="timerWrap">
+        <span id="timer" class="timer"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress" style="border-radius:0;height:4px">
+    <div id="progressBar" class="progress-bar" style="width:0%"></div>
+  </div>
+
+  <div class="container" style="padding-top:1.5rem;padding-bottom:3rem;max-width:720px">
+    <div id="questionsContainer"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.25rem;gap:.75rem">
+      <button id="prevBtn" class="btn btn-secondary btn-lg" style="display:none">← Previous</button>
+      <div style="flex:1"></div>
+      <button id="nextBtn" class="btn btn-primary btn-lg" style="display:none">Next →</button>
+      <button id="submitBtn" class="btn btn-success btn-lg" style="display:none" onclick="handleSubmit()">Submit Test ✓</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/test.js"></script>
+</body>
+</html>
