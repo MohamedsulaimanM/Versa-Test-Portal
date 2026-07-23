@@ -2,7 +2,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const subId = param('id');
   if (!subId) { location.href = 'index.html'; return; }
 
-  const sub  = await DB.getSub(subId);
+  const cached = JSON.parse(sessionStorage.getItem('_tp_last_sub') || 'null');
+  const sub  = (cached && cached.id === subId) ? cached : await DB.getSub(subId);
   const test = sub ? await DB.getTest(sub.testId) : null;
 
   if (!sub || !test) {

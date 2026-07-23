@@ -248,7 +248,8 @@ async function handleSubmit(auto) {
     timeTaken: secs, startedAt, submittedAt, answers: gradedAnswers
   };
 
-  await DB.addSub(sub);
+  sessionStorage.setItem('_tp_last_sub', JSON.stringify(sub));
+  DB.addSub(sub); // fire-and-forget — result page reads from sessionStorage
   location.href = `result.html?id=${sub.id}`;
 }
 
