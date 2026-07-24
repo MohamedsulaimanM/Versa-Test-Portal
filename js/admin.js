@@ -488,3 +488,85 @@ qs('#changePwBtn').addEventListener('click', async () => {
 });
 
 qs('#logoutBtn').addEventListener('click', () => { adminSess.clear(); location.reload(); });
+
+/* ── Excel Import ── */
+qs('#importExcelBtn').addEventListener('click', () => qs('#excelFileInput').click());
+
+qs('#excelFileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = evt => {
+    const wb   = XLSX.read(evt.target.result, { type: 'binary' });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+    if (rows.length < 2) { toast('No data rows found in Excel.', 'warning'); return; }
+
+    let imported = 0, skipped = 0;
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.every(c => !c)) continue;
+
+      const get  = idx => String(row[idx] || '').trim();
+      const type = get(0).toLowerCase();
+      const text = get(1);
+      if (!text || !['mcq','truefalse','fillblank','multi'].includes(type)) { skipped++; continue; }
+
+      const opts   = [get(2), get(3), get(4), get(5)].filter(o => o);
+      const answer = get(6);
+      const points = parseInt(get(7)) || 1;
+      let q = { text, points };
+
+      if (type === 'mcq') {
+        if (!opts.length || !answer) { skipped++; continue; }
+        const ansUp = answer.toUpperCase();
+        let idx = ['A','B','C','D'].includes(ansUp) ? ['A','B','C','D'].indexOf(ansUp) : (parseInt(answer) || 0);
+        if (idx >= opts.length) idx = 0;
+        q = { ...q, type: 'mcq', options: opts, correctIndex: idx };
+
+      } else if (type === 'truefalse') {
+        q = { ...q, type: 'truefalse', correctBool: answer.toLowerCase() === 'true' };
+
+      } else if (type === 'fillblank') {
+        if (!answer) { skipped++; continue; }
+        q = { ...q, type: 'fillblank', correctText: answer };
+
+      } else if (type === 'multi') {
+        if (!opts.length || !answer) { skipped++; continue; }
+        const correctIndices = answer.split(',').map(a => {
+          const up = a.trim().toUpperCase();
+          return ['A','B','C','D'].includes(up) ? ['A','B','C','D'].indexOf(up) : (parseInt(a) || 0);
+        }).filter(idx => idx < opts.length);
+        q = { ...q, type: 'multi', options: opts, correctIndices: correctIndices.length ? correctIndices : [0] };
+      }
+
+      editingTest.questions.push(q);
+      imported++;
+    }
+
+    e.target.value = '';
+    renderQList();
+    if (imported) toast(`${imported} question${imported > 1 ? 's' : ''} imported!`);
+    if (skipped)  toast(`${skipped} row${skipped > 1 ? 's' : ''} skipped (invalid format).`, 'warning');
+  };
+  reader.readAsBinaryString(file);
+});
+
+/* ── Download Excel Template ── */
+qs('#dlTemplateBtn').addEventListener('click', () => {
+  const rows = [
+    ['Type', 'Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Answer', 'Points'],
+    ['mcq',       'What is 2 + 2?',                '3', '4', '5', '6',  'B',    1],
+    ['truefalse', 'The sky is blue.',               '',  '',  '',  '',   'True', 1],
+    ['fillblank', 'The capital of France is ___.',  '',  '',  '',  '',   'Paris',1],
+    ['multi',     'Select all prime numbers.',      '2', '3', '4', '5',  'A,B,D',2],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Questions');
+  XLSX.writeFile(wb, 'question_template.xlsx');
+  toast('Template downloaded!');
+});

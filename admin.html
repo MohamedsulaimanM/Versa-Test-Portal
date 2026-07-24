@@ -172,8 +172,13 @@
             <div class="card">
               <div class="card-header">
                 <h3>Questions</h3>
-                <button id="addQBtn" class="btn btn-primary btn-sm">+ Add Question</button>
+                <div style="display:flex;gap:.4rem">
+                  <button id="dlTemplateBtn" class="btn btn-ghost btn-sm" title="Download Excel template">↓ Template</button>
+                  <button id="importExcelBtn" class="btn btn-secondary btn-sm">↑ Import Excel</button>
+                  <button id="addQBtn" class="btn btn-primary btn-sm">+ Add Question</button>
+                </div>
               </div>
+              <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none">
               <div class="card-body" style="padding:1rem">
                 <div id="qList"></div>
               </div>
@@ -315,6 +320,7 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
