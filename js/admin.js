@@ -490,7 +490,17 @@ qs('#changePwBtn').addEventListener('click', async () => {
 qs('#logoutBtn').addEventListener('click', () => { adminSess.clear(); location.reload(); });
 
 /* ── Excel Import ── */
-qs('#importExcelBtn').addEventListener('click', () => qs('#excelFileInput').click());
+qs('#importExcelBtn').addEventListener('click', () => {
+  if (typeof XLSX !== 'undefined') { qs('#excelFileInput').click(); return; }
+  const btn = qs('#importExcelBtn');
+  btn.textContent = 'Loading…';
+  btn.disabled = true;
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload  = () => { btn.textContent = '↑ Import Excel'; btn.disabled = false; qs('#excelFileInput').click(); };
+  s.onerror = () => { btn.textContent = '↑ Import Excel'; btn.disabled = false; toast('Failed to load Excel parser.', 'danger'); };
+  document.head.appendChild(s);
+});
 
 qs('#excelFileInput').addEventListener('change', e => {
   const file = e.target.files[0];
