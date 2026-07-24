@@ -115,7 +115,6 @@ function renderQuestion() {
 }
 
 function buildQuestionHtml(q, idx) {
-  const pts = `<span class="question-points">${q.points || 1} pt${(q.points||1) > 1 ? 's' : ''}</span>`;
   let optionsHtml = '';
 
   if (q.type === 'mcq') {
@@ -145,7 +144,6 @@ function buildQuestionHtml(q, idx) {
     <div class="question-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
         <div class="question-number">Question ${idx + 1} of ${test.questions.length}</div>
-        ${pts}
       </div>
       <div class="question-text">${escHtml(q.text)}</div>
       ${optionsHtml}
