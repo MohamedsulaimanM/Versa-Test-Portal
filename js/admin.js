@@ -555,18 +555,19 @@ qs('#excelFileInput').addEventListener('change', e => {
   reader.readAsBinaryString(file);
 });
 
-/* ── Download Excel Template ── */
+/* ── Download CSV Template ── */
 qs('#dlTemplateBtn').addEventListener('click', () => {
   const rows = [
     ['Type', 'Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Answer', 'Points'],
-    ['mcq',       'What is 2 + 2?',                '3', '4', '5', '6',  'B',    1],
-    ['truefalse', 'The sky is blue.',               '',  '',  '',  '',   'True', 1],
-    ['fillblank', 'The capital of France is ___.',  '',  '',  '',  '',   'Paris',1],
-    ['multi',     'Select all prime numbers.',      '2', '3', '4', '5',  'A,B,D',2],
+    ['mcq',       'What is 2 + 2?',               '3', '4', '5', '6',  'B',     '1'],
+    ['truefalse', 'The sky is blue.',              '',  '',  '',  '',   'True',  '1'],
+    ['fillblank', 'The capital of France is ___', '',  '',  '',  '',   'Paris', '1'],
+    ['multi',     'Select all prime numbers.',     '2', '3', '4', '5',  'A,B,D', '2'],
   ];
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Questions');
-  XLSX.writeFile(wb, 'question_template.xlsx');
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a   = document.createElement('a');
+  a.href    = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'question_template.csv';
+  a.click();
   toast('Template downloaded!');
 });
