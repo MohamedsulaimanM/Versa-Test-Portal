@@ -1,5 +1,6 @@
 /* ── View router ── */
 let currentView = 'tests', editingTest = null, editingQIdx = null;
+let _tests = [], _subs = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   const configured = await DB.isConfigured();
@@ -401,6 +402,7 @@ async function renderResultsList() {
   tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--gray-400)">Loading…</td></tr>`;
 
   const [tests, allSubs] = await Promise.all([DB.getTests(), DB.getSubs()]);
+  _tests = tests; _subs = allSubs;
 
   qs('#statTests').textContent     = tests.length;
   qs('#statPublished').textContent = tests.filter(t => t.published).length;
@@ -438,6 +440,7 @@ async function renderResultsList() {
         <td>${passedBadge}</td>
         <td>${fmtDuration(s.timeTaken)}</td>
         <td>${fmtDate(s.submittedAt)}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="viewSub('${s.id}')">View</button></td>
       </tr>`;
   }).join('');
 }
@@ -488,6 +491,101 @@ qs('#changePwBtn').addEventListener('click', async () => {
 });
 
 qs('#logoutBtn').addEventListener('click', () => { adminSess.clear(); location.reload(); });
+
+/* ── Submission Detail ── */
+function viewSub(subId) {
+  const sub  = _subs.find(s => s.id === subId);
+  const test = _tests.find(t => t.id === sub?.testId);
+  if (!sub || !test) { toast('Could not load details.', 'danger'); return; }
+
+  qs('#subDetailTitle').textContent = `${escHtml(sub.name)} — ${escHtml(test.title)}`;
+
+  const statusBadge = sub.passed === true
+    ? `<span class="badge badge-success">Passed</span>`
+    : sub.passed === false
+      ? `<span class="badge badge-danger">Failed</span>`
+      : `<span class="badge badge-gray">Completed</span>`;
+
+  const questions = test.questions || [];
+  const answers   = sub.answers   || [];
+
+  qs('#subDetailBody').innerHTML = `
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--gray-200)">
+      <div><span style="color:var(--gray-500);font-size:.8rem">Score</span><br><strong>${sub.score}%</strong></div>
+      <div><span style="color:var(--gray-500);font-size:.8rem">Points</span><br><strong>${sub.earned}/${sub.total}</strong></div>
+      <div><span style="color:var(--gray-500);font-size:.8rem">Status</span><br>${statusBadge}</div>
+      <div><span style="color:var(--gray-500);font-size:.8rem">Time</span><br><strong>${fmtDuration(sub.timeTaken)}</strong></div>
+      <div><span style="color:var(--gray-500);font-size:.8rem">Email</span><br><strong>${escHtml(sub.email)}</strong></div>
+    </div>
+    ${questions.map((q, i) => renderSubAnswer(q, i, answers[i])).join('')}`;
+
+  qs('#subDetailOverlay').style.display = 'flex';
+}
+
+function renderSubAnswer(q, idx, ans) {
+  const correct   = ans?.correct;
+  const given     = ans?.given;
+  const cardStyle = correct
+    ? 'border:1px solid #bbf7d0;background:#f0fdf4'
+    : 'border:1px solid #fecaca;background:#fff7f7';
+  const icon = correct ? '✓' : '✗';
+  const iconColor = correct ? 'var(--success)' : 'var(--danger)';
+
+  let bodyHtml = '';
+
+  if (q.type === 'mcq') {
+    bodyHtml = (q.options || []).map((opt, i) => {
+      const sel = given === i, isAns = i === q.correctIndex;
+      const bg  = sel && isAns  ? '#dcfce7;border-color:#86efac'
+                : sel && !isAns ? '#fee2e2;border-color:#fca5a5'
+                : isAns         ? '#f0fdf4;border-color:#86efac'
+                : '';
+      const prefix = sel ? (isAns ? '✓ ' : '✗ ') : isAns ? '→ ' : '○ ';
+      return `<div class="option-label" style="margin-bottom:.3rem;${bg ? 'background:'+bg : ''}">${prefix}${escHtml(opt)}</div>`;
+    }).join('');
+
+  } else if (q.type === 'truefalse') {
+    ['True','False'].forEach(v => {
+      const val = v === 'True', sel = given === val, isAns = val === q.correctBool;
+      const bg  = sel && isAns  ? '#dcfce7;border-color:#86efac'
+                : sel && !isAns ? '#fee2e2;border-color:#fca5a5'
+                : isAns         ? '#f0fdf4;border-color:#86efac' : '';
+      const prefix = sel ? (isAns ? '✓ ' : '✗ ') : isAns ? '→ ' : '○ ';
+      bodyHtml += `<div class="option-label" style="margin-bottom:.3rem;${bg ? 'background:'+bg : ''}">${prefix}${v}</div>`;
+    });
+
+  } else if (q.type === 'fillblank') {
+    const userAns = given !== undefined && given !== null && given !== '' ? escHtml(String(given)) : '<em style="color:var(--gray-400)">No answer</em>';
+    bodyHtml = `<div style="margin-bottom:.3rem">
+      <span style="color:var(--gray-500);font-size:.8rem">Selected:</span>
+      <strong style="color:${correct ? 'var(--success)' : 'var(--danger)'}">${userAns}</strong>
+    </div>`;
+    if (!correct) bodyHtml += `<div><span style="color:var(--gray-500);font-size:.8rem">Correct answer:</span> <strong style="color:var(--success)">${escHtml(q.correctText || '')}</strong></div>`;
+
+  } else if (q.type === 'multi') {
+    const givenArr   = Array.isArray(given) ? given : [];
+    const correctArr = q.correctIndices || [];
+    bodyHtml = (q.options || []).map((opt, i) => {
+      const sel = givenArr.includes(i), isAns = correctArr.includes(i);
+      const bg  = sel && isAns  ? '#dcfce7;border-color:#86efac'
+                : sel && !isAns ? '#fee2e2;border-color:#fca5a5'
+                : isAns         ? '#f0fdf4;border-color:#86efac' : '';
+      const prefix = sel ? (isAns ? '✓ ' : '✗ ') : isAns ? '→ ' : '○ ';
+      return `<div class="option-label" style="margin-bottom:.3rem;${bg ? 'background:'+bg : ''}">${prefix}${escHtml(opt)}</div>`;
+    }).join('');
+  }
+
+  return `<div style="margin-bottom:1rem;padding:.875rem;border-radius:8px;${cardStyle}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem;gap:.5rem">
+      <div style="font-size:.875rem;font-weight:600">Q${idx + 1}. ${escHtml(q.text)}</div>
+      <span style="color:${iconColor};font-weight:700;flex-shrink:0">${icon}</span>
+    </div>
+    ${bodyHtml}
+  </div>`;
+}
+
+qs('#subDetailClose').addEventListener('click', () => { qs('#subDetailOverlay').style.display = 'none'; });
+qs('#subDetailOverlay').addEventListener('click', e => { if (e.target === qs('#subDetailOverlay')) qs('#subDetailOverlay').style.display = 'none'; });
 
 /* ── Excel Import ── */
 qs('#importExcelBtn').addEventListener('click', () => {
