@@ -23,5 +23,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   qs('#metaName').textContent      = sub.name;
   qs('#metaTime').textContent      = fmtDuration(sub.timeTaken);
   qs('#metaDate').textContent      = fmtDate(sub.submittedAt);
-  qs('#backBtn').href               = 'index.html?view=1';
+
+  // Show hint if the tab cannot be closed programmatically
+  setTimeout(() => {
+    if (!window.closed) qs('#closeHint').style.display = '';
+  }, 500);
 });
