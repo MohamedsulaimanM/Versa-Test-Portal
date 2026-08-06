@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examiner Portal — Versa Test Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <span class="navbar-brand">
+    <img src="images/versa-logo.png" height="40" alt="Versa" style="vertical-align:middle">
+  </span>
+  <div class="navbar-links">
+    <span style="font-size:.8rem;color:var(--gray-500);padding:.4rem .5rem">Examiner Portal</span>
+    <a href="index.html?view=1">View Site</a>
+  </div>
+</nav>
+
+<!-- ── Auth Screen ── -->
+<div id="authScreen" style="display:none">
+  <div class="auth-wrap">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3>Examiner Portal</h3>
+          <p style="font-size:.8rem;color:var(--gray-500);margin-top:.2rem">Sign in or create an examiner account</p>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Tabs -->
+        <div style="display:flex;gap:0;margin-bottom:1.25rem;border-bottom:2px solid var(--gray-200)">
+          <button id="tabLoginBtn" class="btn btn-ghost"
+            style="border-radius:0;border-bottom:2px solid var(--primary);margin-bottom:-2px;font-weight:600"
+            onclick="switchAuthTab('login')">Login</button>
+          <button id="tabRegBtn" class="btn btn-ghost"
+            style="border-radius:0;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:400"
+            onclick="switchAuthTab('register')">Register</button>
+        </div>
+
+        <div id="authError" class="alert alert-danger" style="display:none"></div>
+
+        <!-- Login Tab -->
+        <div id="tabLogin">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email <span class="req">*</span></label>
+            <input id="loginEmail" type="email" class="form-control" placeholder="your@email.com" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPw">Password <span class="req">*</span></label>
+            <input id="loginPw" type="password" class="form-control" placeholder="Enter password" autocomplete="current-password">
+          </div>
+          <button id="loginBtn" class="btn btn-primary btn-lg" style="width:100%">Login</button>
+        </div>
+
+        <!-- Register Tab -->
+        <div id="tabRegister" style="display:none">
+          <div class="form-group">
+            <label class="form-label" for="regName">Full Name <span class="req">*</span></label>
+            <input id="regName" type="text" class="form-control" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regEmail">Email <span class="req">*</span></label>
+            <input id="regEmail" type="email" class="form-control" placeholder="your@email.com" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPw">Password <span class="req">*</span></label>
+            <input id="regPw" type="password" class="form-control" placeholder="Min. 4 characters" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPw2">Confirm Password <span class="req">*</span></label>
+            <input id="regPw2" type="password" class="form-control" placeholder="Repeat password" autocomplete="new-password">
+          </div>
+          <button id="registerBtn" class="btn btn-primary btn-lg" style="width:100%">Create Account</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Pending Screen ── -->
+<div id="pendingScreen" style="display:none">
+  <div class="auth-wrap">
+    <div class="card">
+      <div class="card-header">
+        <h3>Account Status</h3>
+      </div>
+      <div class="card-body">
+        <div id="pendingMessage" class="alert alert-warning">
+          Your account is pending approval from the administrator. You will be notified once approved.
+        </div>
+        <button class="btn btn-ghost" style="margin-top:.75rem"
+          onclick="examSess.clear();location.reload();">← Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── App Screen ── -->
+<div id="appScreen" style="display:none">
+  <div class="admin-wrap">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="admin-nav-item active" data-view="tests">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h6M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        My Tests
+      </button>
+      <button class="admin-nav-item" data-view="create">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Test
+      </button>
+      <hr class="admin-nav-divider">
+      <button class="admin-nav-item" data-view="results">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Results
+      </button>
+      <button class="admin-nav-item" data-view="downloads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Downloads
+      </button>
+      <hr class="admin-nav-divider">
+      <button id="examLogoutBtn" class="admin-nav-item" style="margin-top:auto;color:var(--danger)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </aside>
+
+    <!-- Content -->
+    <main class="admin-content">
+
+      <!-- ── Tests List View ── -->
+      <div id="view_tests" class="admin-view">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+          <div>
+            <div class="page-title">My Tests</div>
+            <div class="page-subtitle">Manage, publish, and share your tests.</div>
+          </div>
+          <button class="btn btn-primary" onclick="examNav('create')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Test
+          </button>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Questions</th>
+                  <th>Status</th>
+                  <th>Submissions</th>
+                  <th>Time Limit</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="examTestsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Create / Edit Test View ── -->
+      <div id="view_create" class="admin-view" style="display:none">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+          <button class="btn btn-ghost btn-sm" onclick="examEditingTest=null;examNav('tests')">← Back</button>
+          <div>
+            <div class="page-title">Test Editor</div>
+            <div class="page-subtitle">Configure your test and add questions.</div>
+          </div>
+          <button id="examSaveTestBtn" class="btn btn-success" style="margin-left:auto">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Save Test
+          </button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+          <!-- Left: metadata -->
+          <div>
+            <div class="card">
+              <div class="card-header"><h3>Test Details</h3></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Title <span class="req">*</span></label>
+                  <input id="examEditorTitle" type="text" class="form-control" placeholder="e.g. Versa SSE Fundamentals">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea id="examEditorDesc" class="form-control" placeholder="Brief description for test takers…"></textarea>
+                </div>
+                <div class="input-row">
+                  <div class="form-group">
+                    <label class="form-label">Time Limit (minutes)</label>
+                    <input id="examEditorTime" type="number" class="form-control" min="0" placeholder="0 = unlimited">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Passing Score (%)</label>
+                    <input id="examEditorPassing" type="number" class="form-control" min="0" max="100" placeholder="e.g. 70">
+                  </div>
+                </div>
+                <hr class="divider">
+                <div class="form-group">
+                  <label class="form-label">
+                    Allowed Emails
+                    <span style="font-weight:400;color:var(--gray-500)">(optional)</span>
+                  </label>
+                  <textarea id="examEditorAllowedEmails" class="form-control" rows="5"
+                    placeholder="Enter one email per line&#10;e.g.&#10;john@company.com&#10;jane@company.com"></textarea>
+                  <div class="form-hint">
+                    Leave empty to allow anyone. When filled, only listed emails can take this test — and each only once.
+                  </div>
+                </div>
+                <div id="examEmailCountBadge" style="display:none;margin-top:.25rem">
+                  <span class="badge badge-primary" id="examEmailCountText"></span>
+                </div>
+                <hr class="divider">
+                <div style="display:flex;align-items:flex-start;gap:.6rem">
+                  <input type="checkbox" id="examEditorPrivate" style="margin-top:.2rem;width:15px;height:15px;flex-shrink:0;cursor:pointer">
+                  <label for="examEditorPrivate" style="cursor:pointer;margin:0">
+                    <span class="form-label" style="display:block;margin-bottom:.15rem">Private Test</span>
+                    <span class="form-hint">Hide this test from the public listing. Share the direct link with your candidates.</span>
+                  </label>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:.6rem;margin-top:.75rem">
+                  <input type="checkbox" id="examEditorRequireOTP" style="margin-top:.2rem;width:15px;height:15px;flex-shrink:0;cursor:pointer">
+                  <label for="examEditorRequireOTP" style="cursor:pointer;margin:0">
+                    <span class="form-label" style="display:block;margin-bottom:.15rem">Require Email OTP</span>
+                    <span class="form-hint">Test takers must verify their email with a 6-digit code before starting. Requires EmailJS configured in Settings.</span>
+                  </label>
+                </div>
+                <div id="examOtpWarn" style="display:none;margin-top:.5rem" class="alert alert-danger">
+                  &#9888; EmailJS is not configured. Contact the administrator to enable Email OTP before using this option.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: questions -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3>Questions</h3>
+                <div style="display:flex;gap:.4rem">
+                  <button id="examDlTemplateBtn" class="btn btn-ghost btn-sm" title="Download Excel template">↓ Template</button>
+                  <button id="examImportExcelBtn" class="btn btn-secondary btn-sm">↑ Import Excel</button>
+                  <button id="examAddQBtn" class="btn btn-primary btn-sm">+ Add Question</button>
+                </div>
+              </div>
+              <input type="file" id="examExcelFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+              <div class="card-body" style="padding:1rem">
+                <div id="examQList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Results View ── -->
+      <div id="view_results" class="admin-view" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+          <div>
+            <div class="page-title">Results</div>
+            <div class="page-subtitle">View and export submissions for your tests.</div>
+          </div>
+          <button id="examExportCsvBtn" class="btn btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">My Tests</div>
+            <div class="stat-value" id="statExamTests">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Submissions</div>
+            <div class="stat-value" id="statExamSubs">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pass Rate</div>
+            <div class="stat-value" id="statExamPass">—</div>
+          </div>
+        </div>
+
+        <!-- Filter -->
+        <div style="margin-bottom:1rem;display:flex;align-items:center;gap:1rem">
+          <label class="form-label" style="margin:0;white-space:nowrap">Filter by test:</label>
+          <select id="examResultFilter" class="form-control" style="max-width:280px">
+            <option value="">All My Tests</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Test</th>
+                  <th>Score</th>
+                  <th>Status</th>
+                  <th>Time</th>
+                  <th>Submitted</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="examResultsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Downloads View ── -->
+      <div id="view_downloads" class="admin-view" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+          <div>
+            <div class="page-title">Downloads</div>
+            <div class="page-subtitle">Upload and manage files for your exam folders.</div>
+          </div>
+        </div>
+        <div id="examDownloadsContent"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Question Modal ── -->
+<div id="examQModalOverlay" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="examQModalTitle">Add Question</h3>
+      <button id="examQModalClose" class="modal-close">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Question Type <span class="req">*</span></label>
+        <select id="examQType" class="form-control">
+          <option value="single">Multiple Choice (single answer)</option>
+          <option value="multi">Multiple Select (multiple correct)</option>
+          <option value="truefalse">True / False</option>
+          <option value="fillblank">Fill in the Blank</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Question Text <span class="req">*</span></label>
+        <textarea id="examQText" class="form-control" rows="3" placeholder="Enter your question here…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Points</label>
+        <input id="examQPoints" type="number" class="form-control" min="1" value="1" style="max-width:100px">
+      </div>
+      <hr class="divider">
+      <div id="examQTypeFields"></div>
+      <hr class="divider">
+      <div class="form-group">
+        <label class="form-label">Explanation <span style="font-weight:400;color:var(--gray-500)">(optional)</span></label>
+        <textarea id="examQExplain" class="form-control" rows="2" placeholder="Shown to the test taker after submitting…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="examQModalCancel" class="btn btn-secondary">Cancel</button>
+      <button id="examSaveQBtn" class="btn btn-primary">Save Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Submission Detail Modal ── -->
+<div id="examSubDetailOverlay" class="modal-overlay" style="display:none">
+  <div class="modal" style="max-width:700px;max-height:85vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <h3 id="examSubDetailTitle">Submission Details</h3>
+      <button id="examSubDetailClose" class="modal-close">&#215;</button>
+    </div>
+    <div class="modal-body" id="examSubDetailBody" style="overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="js/firebase-config.js?v=2"></script>
+<script src="js/storage.js?v=6"></script>
+<script src="js/utils.js?v=2"></script>
+<script src="js/drive.js?v=4"></script>
+<script src="js/examiner.js?v=12"></script>
+</body>
+</html>

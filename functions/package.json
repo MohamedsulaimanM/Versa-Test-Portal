@@ -1,0 +1,17 @@
+{
+  "name": "versa-test-portal-functions",
+  "description": "Drive API proxy functions for Versa Test Portal",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-functions": "^6.0.0",
+    "googleapis": "^140.0.0"
+  },
+  "private": true
+}
