@@ -108,6 +108,7 @@ async function renderTestsList() {
             <button class="btn btn-${t.published ? 'warning' : 'success'} btn-sm" onclick="togglePublish('${t.id}')">${t.published ? 'Unpublish' : 'Publish'}</button>
             <button class="btn btn-ghost btn-sm" onclick="copyLink('${t.id}')">Copy Test Link</button>
             <button class="btn btn-ghost btn-sm" onclick="copyDlLink('${t.id}')">📥 Download Link</button>
+            <button class="btn btn-ghost btn-sm" onclick="exportTestTemplate('${t.id}')">⬇ Export Template</button>
             <button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')">Delete</button>
           </div>
         </td>
@@ -272,6 +273,32 @@ async function deleteTest(id) {
   await DB.deleteTest(id);
   renderTestsList();
   toast('Test deleted.', 'warning');
+}
+
+/* ── Export test questions as CSV template ── */
+async function exportTestTemplate(id) {
+  const t = await DB.getTest(id);
+  if (!t || !t.questions || !t.questions.length) { toast('No questions to export.', 'warning'); return; }
+
+  const letters = ['A','B','C','D','E','F'];
+  const rows = [['Type','Question','Option A','Option B','Option C','Option D','Answer','Points']];
+
+  for (const q of t.questions) {
+    const opts = q.options || [];
+    let answer = '';
+    if (q.type === 'single')    answer = letters[q.correctIndex] ?? '';
+    if (q.type === 'multi')     answer = (q.correctIndices || []).map(i => letters[i]).join(',');
+    if (q.type === 'truefalse') answer = q.correctBool ? 'True' : 'False';
+    if (q.type === 'fillblank') answer = q.correctText || '';
+    rows.push([q.type, q.text, opts[0]||'', opts[1]||'', opts[2]||'', opts[3]||'', answer, q.points ?? 1]);
+  }
+
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `${(t.title || 'questions').replace(/[^a-z0-9]/gi,'_')}_template.csv`;
+  a.click();
+  toast('Template exported!');
 }
 
 /* ── Copy share link ── */
