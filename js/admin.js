@@ -768,7 +768,11 @@ async function loadFolderFiles(testId, folderId) {
   try {
     const files = await DRIVE.listFolderFiles(folderId);
     if (!files.length) {
-      el.innerHTML = `<span style="color:var(--gray-400)">No files yet — click Upload to add files.</span>`;
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <span style="color:var(--gray-400)">No files yet — click Upload to add files.</span>
+          <button class="btn btn-secondary btn-sm" onclick="recreateDriveFolder('${testId}')">🔄 Re-create Folder</button>
+        </div>`;
       return true;
     }
     el.innerHTML = `
