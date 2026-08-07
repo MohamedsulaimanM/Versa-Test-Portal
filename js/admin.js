@@ -796,7 +796,29 @@ async function loadFolderFiles(testId, folderId) {
       </table>`;
     return true;
   } catch (e) {
-    el.innerHTML = `<span style="color:var(--gray-400);font-size:.8rem">⚠️ ${escHtml(e.message)}</span>`;
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span style="color:var(--danger);font-size:.8rem">⚠️ Drive folder not found or inaccessible.</span>
+        <button class="btn btn-secondary btn-sm" onclick="recreateDriveFolder('${testId}')">🔄 Re-create Folder</button>
+      </div>`;
+  }
+}
+
+async function recreateDriveFolder(testId) {
+  const el = qs(`#folder_${testId}`);
+  if (el) el.innerHTML = `<span style="color:var(--gray-400);font-size:.8rem">Creating new Drive folder…</span>`;
+  try {
+    const test = await DB.getTest(testId);
+    if (!test) throw new Error('Test not found');
+    delete test.driveFolderId;
+    const folderId = await DRIVE.ensureTestFolder(test);
+    test.driveFolderId = folderId;
+    await DB.upsertTest(test);
+    toast('New Drive folder created!');
+    await loadFolderFiles(testId, folderId);
+  } catch (e) {
+    if (el) el.innerHTML = `<span style="color:var(--danger);font-size:.8rem">⚠️ Failed: ${escHtml(e.message)}</span>`;
+    toast(`Failed to re-create folder: ${e.message}`, 'danger');
   }
 }
 
