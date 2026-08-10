@@ -234,6 +234,20 @@
                 <div id="examOtpWarn" style="display:none;margin-top:.5rem" class="alert alert-danger">
                   &#9888; EmailJS is not configured. Contact the administrator to enable Email OTP before using this option.
                 </div>
+                <hr class="divider">
+                <div class="form-group">
+                  <label class="form-label">Download Files</label>
+                  <div class="form-hint" style="margin-bottom:.5rem">Test takers see a download button per file — the SharePoint URL is never shown.</div>
+                  <div id="examDlFileList" style="margin-bottom:.5rem"></div>
+                  <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+                    <input id="examDlFileName" type="text" class="form-control" placeholder="File name (e.g. Study Guide)" style="flex:1;min-width:130px">
+                    <input id="examDlFileUrl" type="text" class="form-control" placeholder="SharePoint sharing link" style="flex:2;min-width:180px">
+                    <button type="button" class="btn btn-secondary btn-sm" id="examDlAddBtn" style="white-space:nowrap">+ Add</button>
+                  </div>
+                  <div style="margin-top:.6rem;padding:.6rem .75rem;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:.8rem;color:#92400e;line-height:1.5">
+                    <strong>Note:</strong> Log in to SharePoint using your O365 ID and locate the uploaded file. Click the three dots (<strong>&#8943;</strong>) &#8594; <strong>Manage Access</strong> &#8594; <strong>Links</strong>, then copy the <em>"Anyone with the link can view"</em> link and paste it here.
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -330,6 +330,28 @@ function renderExamEditor() {
   examUpdateEmailCount();
   examCheckOtpWarning();
   renderExamQList();
+  renderExamDlFileList();
+}
+
+function renderExamDlFileList() {
+  const files = examEditingTest ? (examEditingTest.downloads || []) : [];
+  const el    = qs('#examDlFileList');
+  if (!el) return;
+  if (!files.length) {
+    el.innerHTML = `<div style="color:var(--gray-400);font-size:.8rem;padding:.2rem 0">No files added yet.</div>`;
+    return;
+  }
+  el.innerHTML = files.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--gray-100)">
+      <span style="flex:1;font-size:.875rem">&#128196; ${escHtml(f.name)}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeExamDownloadFile(${i})">&#10005;</button>
+    </div>`).join('');
+}
+
+function removeExamDownloadFile(idx) {
+  if (!examEditingTest) return;
+  examEditingTest.downloads.splice(idx, 1);
+  renderExamDlFileList();
 }
 
 async function examCheckOtpWarning() {
@@ -408,24 +430,12 @@ async function saveExamTest() {
   examEditingTest.isPrivate     = qs('#examEditorPrivate').checked;
   examEditingTest.requireOTP    = qs('#examEditorRequireOTP').checked;
   examEditingTest.examinerId    = sess ? sess.id : (examEditingTest.examinerId || '');
+  examEditingTest.downloads     = examEditingTest.downloads || [];
 
   await DB.upsertTest(examEditingTest);
 
-  if (!examEditingTest.driveFolderId) {
-    btn.textContent = 'Creating Drive folder…';
-    try {
-      const folderId = await DRIVE.ensureTestFolder(examEditingTest);
-      examEditingTest.driveFolderId = folderId;
-      await DB.upsertTest(examEditingTest);
-      toast('Test saved! Drive folder created.');
-    } catch (e) {
-      console.warn('Drive folder skipped:', e.message);
-      toast('Test saved! (Drive folder creation failed — check Apps Script URL in drive.js)', 'warning');
-    }
-  } else {
-    const otpStatus = examEditingTest.requireOTP ? 'Email OTP: ON' : 'Email OTP: OFF';
-    toast(`Test saved! (${otpStatus})`);
-  }
+  const otpStatus = examEditingTest.requireOTP ? 'Email OTP: ON' : 'Email OTP: OFF';
+  toast(`Test saved! (${otpStatus})`);
 
   examEditingTest = null;
   btn.disabled    = false;
@@ -643,6 +653,21 @@ function saveExamQuestion() {
 function closeExamQModal() {
   qs('#examQModalOverlay').style.display = 'none';
 }
+
+/* ── Download Files — Add button ── */
+qs('#examDlAddBtn').addEventListener('click', () => {
+  if (!examEditingTest) return;
+  const name = qs('#examDlFileName').value.trim();
+  const url  = qs('#examDlFileUrl').value.trim();
+  if (!name) { toast('Enter a file name.', 'warning'); return; }
+  if (!url)  { toast('Paste the SharePoint link.', 'warning'); return; }
+  if (!examEditingTest.downloads) examEditingTest.downloads = [];
+  examEditingTest.downloads.push({ name, url });
+  qs('#examDlFileName').value = '';
+  qs('#examDlFileUrl').value  = '';
+  renderExamDlFileList();
+  toast('File added.');
+});
 
 /* ── Excel Import ── */
 qs('#examImportExcelBtn').addEventListener('click', () => {
@@ -869,44 +894,21 @@ function examViewSub(subId) {
    DOWNLOADS
 ════════════════════════════════════════════ */
 
-async function renderExamDownloads() {
-  const container = qs('#examDownloadsContent');
-  container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--gray-400)">Loading…</div>`;
-
-  const sess = examSess.get();
-  if (!sess) return;
-
-  const tests = (await DB.getExaminerTests(sess.id)).filter(t => t.driveFolderId);
-
-  if (!tests.length) {
-    container.innerHTML = `
-      <div class="card"><div class="card-body" style="text-align:center;padding:2rem;color:var(--gray-400)">
-        No exam folders yet. Save a test — a Drive folder is created automatically.
-      </div></div>`;
-    return;
-  }
-
-  container.innerHTML = tests.map(t => `
-    <div class="card" style="margin-bottom:1rem">
-      <div class="card-body" style="padding:1.25rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <strong style="font-size:.9375rem">${escHtml(t.title)}</strong>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <button class="btn btn-ghost btn-sm" onclick="examCopyDlLink('${t.id}')">🔗 Copy Download Link</button>
-            <label class="btn btn-primary btn-sm" style="cursor:pointer;margin:0">
-              &#128228; Upload
-              <input type="file" multiple style="display:none"
-                onchange="examUploadToDriveFolder('${t.id}','${t.driveFolderId}',this)">
-            </label>
-          </div>
+function renderExamDownloads() {
+  const container = qs('#examSharePointContent');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-body" style="text-align:center;padding:2.5rem 1.5rem">
+        <div style="font-size:2rem;margin-bottom:.75rem">&#128193;</div>
+        <p style="color:var(--gray-500);margin-bottom:1rem">Upload and manage training files directly in SharePoint.</p>
+        <div style="margin-bottom:1.5rem;padding:.65rem .85rem;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:.85rem;color:#92400e;line-height:1.6;text-align:left;max-width:460px;margin-left:auto;margin-right:auto">
+          <strong>Note:</strong> Create a folder with your <strong>test name</strong> and upload the files that need to be shared with the test takers.
         </div>
-        <div id="examFolder_${t.id}" style="font-size:.875rem;color:var(--gray-400)">Loading…</div>
+        <a href="https://versanetworks.sharepoint.com/:f:/g/IgAEhhHXCJCxQIqNOG6SFdZIAW7S9-BKJ59Oa0xnYtxd5Fo?e=g57niV"
+           target="_blank" class="btn btn-primary">Open SharePoint Folder</a>
       </div>
-    </div>`).join('');
-
-  for (const t of tests) {
-    await examLoadFolderFiles(t.id, t.driveFolderId);
-  }
+    </div>`;
 }
 
 async function examLoadFolderFiles(testId, folderId) {
