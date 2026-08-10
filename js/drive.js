@@ -1,9 +1,9 @@
 // Google Drive integration via Google Apps Script web app.
-// Runs as versaexamportal@gmail.com — zero browser OAuth popup, no billing needed.
+// Runs as versatestportal@gmail.com — zero browser OAuth popup, no billing needed.
 const DRIVE = (() => {
 
   // Paste your Apps Script web app URL here after deploying (Step 4 below)
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWq22C2DBLXNflxVpe2nyCEayzPSVXDNfdyDAsaLN2rnrflaKsEDuR9wfA8VEEwzU7zA/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzQVpE8OQsDQ6YKDavS34QtKR_w5CIBx-6D5qvRqSg53VAu5c5n5r563zgBr2Eu9ak1A/exec';
 
   async function callScript(action, params) {
     if (!SCRIPT_URL || SCRIPT_URL.includes('PASTE')) {
