@@ -107,6 +107,7 @@ async function renderTestsList() {
             <button class="btn btn-secondary btn-sm" onclick="openEditTest('${t.id}')">Edit</button>
             <button class="btn btn-${t.published ? 'warning' : 'success'} btn-sm" onclick="togglePublish('${t.id}')">${t.published ? 'Unpublish' : 'Publish'}</button>
             <button class="btn btn-ghost btn-sm" onclick="copyLink('${t.id}')">Copy Test Link</button>
+            <button class="btn btn-ghost btn-sm" onclick="copyDlLink('${t.id}')">📥 Download Link</button>
             <button class="btn btn-ghost btn-sm" onclick="exportTestTemplate('${t.id}')">⬇ Export Template</button>
             <button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')">Delete</button>
           </div>
@@ -328,6 +329,11 @@ async function exportTestTemplate(id) {
 function copyLink(id) {
   const url = `${location.origin}${location.pathname.replace('admin.html', '')}test.html?id=${id}`;
   navigator.clipboard.writeText(url).then(() => toast('Link copied!')).catch(() => { prompt('Copy this link:', url); });
+}
+
+function copyDlLink(id) {
+  const url = `${location.origin}${location.pathname.replace('admin.html', '')}downloads.html?test=${id}`;
+  navigator.clipboard.writeText(url).then(() => toast('Download link copied!')).catch(() => { prompt('Copy this link:', url); });
 }
 
 /* ── Question modal ── */
