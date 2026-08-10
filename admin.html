@@ -220,6 +220,23 @@
             </div>
           </div>
         </div>
+
+        <!-- Downloads Card -->
+        <div class="card" style="margin-top:1.5rem">
+          <div class="card-header">
+            <h3>Download Files</h3>
+            <span style="font-size:.8rem;color:var(--gray-500)">Files test takers can download from the downloads page</span>
+          </div>
+          <div class="card-body">
+            <div id="dlFileList"></div>
+            <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;align-items:center">
+              <input id="dlFileName" type="text" class="form-control" placeholder="File name (e.g. Study Guide)" style="flex:1;min-width:140px">
+              <input id="dlFileUrl" type="url" class="form-control" placeholder="SharePoint sharing link" style="flex:2;min-width:220px">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addDownloadFile()" style="white-space:nowrap">+ Add File</button>
+            </div>
+            <div class="form-hint" style="margin-top:.4rem">Paste the SharePoint sharing link for each file. Test takers only see a download button — the URL is never shown.</div>
+          </div>
+        </div>
       </div>
 
       <!-- ── Results View ── -->
@@ -297,14 +314,19 @@
 
       <!-- ── Downloads View ── -->
       <div id="view_downloads" class="admin-view" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
-          <div>
-            <div class="page-title">Downloads</div>
-            <div class="page-subtitle">Upload files to each exam folder — visible to test takers on the downloads page.</div>
-          </div>
-          <button id="copyDlPageBtn" class="btn btn-ghost btn-sm">Copy Page Link</button>
+        <div style="margin-bottom:1.5rem">
+          <div class="page-title">Downloads</div>
+          <div class="page-subtitle">Training materials are hosted on SharePoint.</div>
         </div>
-        <div id="downloadsContent"></div>
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:2.5rem">
+            <div style="font-size:2.5rem;margin-bottom:1rem">📁</div>
+            <h3 style="margin-bottom:.5rem">SharePoint Folder</h3>
+            <p style="color:var(--gray-500);margin-bottom:1.5rem">Upload and manage training files directly in SharePoint.</p>
+            <a href="https://versanetworks.sharepoint.com/:f:/g/IgAEhhHXCJCxQIqNOG6SFdZIAW7S9-BKJ59Oa0xnYtxd5Fo?e=g57niV"
+               target="_blank" class="btn btn-primary">Open SharePoint Folder</a>
+          </div>
+        </div>
       </div>
 
       <!-- ── Examiners View ── -->

@@ -80,19 +80,63 @@
 </div>
 
 <div class="dl-wrap">
-  <div style="text-align:center;padding:3rem 1rem">
-    <div style="font-size:3rem;margin-bottom:1rem">📁</div>
-    <h2 style="margin-bottom:.5rem">Training Materials</h2>
-    <p style="color:var(--gray-500);margin-bottom:2rem">All training materials and resources are hosted on SharePoint.</p>
-    <a href="https://versanetworks.sharepoint.com/:f:/g/IgAEhhHXCJCxQIqNOG6SFdZIAW7S9-BKJ59Oa0xnYtxd5Fo?e=g57niV"
-       target="_blank"
-       class="btn btn-primary"
-       style="font-size:1rem;padding:.75rem 2rem">
-      Open SharePoint Folder
-    </a>
-    <p style="color:var(--gray-400);font-size:.8rem;margin-top:1rem">Opens in a new tab — Versa Networks SharePoint access required.</p>
-  </div>
+  <div id="dlContent"><div class="dl-empty">Loading…</div></div>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js?v=4"></script>
+<script>
+(async () => {
+  const container    = document.getElementById('dlContent');
+  const filterTestId = new URLSearchParams(location.search).get('test');
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function dlUrl(url) {
+    return url.includes('?') ? url + '&download=1' : url + '?download=1';
+  }
+
+  try {
+    const db   = firebase.firestore();
+    const snap = await db.collection('tests').get();
+    let tests  = snap.docs.map(d => d.data())
+      .filter(t => t.published && Array.isArray(t.downloads) && t.downloads.length > 0);
+
+    if (filterTestId) tests = tests.filter(t => t.id === filterTestId);
+
+    if (!tests.length) {
+      container.innerHTML = `<div class="dl-empty">No downloads available yet.</div>`;
+      return;
+    }
+
+    if (filterTestId && tests.length === 1) {
+      const heroP = document.querySelector('.hero p');
+      if (heroP) heroP.textContent = tests[0].title || 'Downloads';
+    }
+
+    container.innerHTML = tests.map(t => `
+      <div class="dl-folder">
+        <div class="dl-folder-header">
+          <span style="font-size:1.2rem">📁</span>
+          <span class="dl-folder-name">${esc(t.title)}</span>
+          <span class="dl-folder-count">${t.downloads.length} file${t.downloads.length !== 1 ? 's' : ''}</span>
+        </div>
+        ${t.downloads.map(f => `
+          <div class="dl-file-row">
+            <span class="dl-file-name">📄 ${esc(f.name)}</span>
+            <a class="dl-btn" href="${esc(dlUrl(f.url))}" target="_blank" rel="noopener">↓ Download</a>
+          </div>`).join('')}
+      </div>`).join('');
+
+  } catch (e) {
+    container.innerHTML = `<div class="dl-empty">Could not load files. Please try again later.</div>`;
+    console.error(e);
+  }
+})();
+</script>
 
 </body>
 </html>

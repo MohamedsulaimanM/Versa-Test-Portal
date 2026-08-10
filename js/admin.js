@@ -107,7 +107,6 @@ async function renderTestsList() {
             <button class="btn btn-secondary btn-sm" onclick="openEditTest('${t.id}')">Edit</button>
             <button class="btn btn-${t.published ? 'warning' : 'success'} btn-sm" onclick="togglePublish('${t.id}')">${t.published ? 'Unpublish' : 'Publish'}</button>
             <button class="btn btn-ghost btn-sm" onclick="copyLink('${t.id}')">Copy Test Link</button>
-            <button class="btn btn-ghost btn-sm" onclick="copyDlLink('${t.id}')">📥 Download Link</button>
             <button class="btn btn-ghost btn-sm" onclick="exportTestTemplate('${t.id}')">⬇ Export Template</button>
             <button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')">Delete</button>
           </div>
@@ -158,6 +157,40 @@ function renderEditor() {
   checkOtpWarning();
   qs('#editorRequireOTP').onchange = checkOtpWarning;
   renderQList();
+  renderDlFileList();
+}
+
+/* ── Download Files ── */
+function renderDlFileList() {
+  const files = editingTest.downloads || [];
+  const el    = qs('#dlFileList');
+  if (!files.length) {
+    el.innerHTML = `<div style="color:var(--gray-400);font-size:.85rem;padding:.4rem 0">No files added yet.</div>`;
+    return;
+  }
+  el.innerHTML = files.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--gray-100)">
+      <span style="flex:1;font-size:.875rem">📄 ${escHtml(f.name)}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeDownloadFile(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addDownloadFile() {
+  const name = qs('#dlFileName').value.trim();
+  const url  = qs('#dlFileUrl').value.trim();
+  if (!name) { toast('Enter a file name.', 'warning'); return; }
+  if (!url)  { toast('Paste the SharePoint link.', 'warning'); return; }
+  if (!editingTest.downloads) editingTest.downloads = [];
+  editingTest.downloads.push({ name, url });
+  qs('#dlFileName').value = '';
+  qs('#dlFileUrl').value  = '';
+  renderDlFileList();
+  toast('File added.');
+}
+
+function removeDownloadFile(idx) {
+  editingTest.downloads.splice(idx, 1);
+  renderDlFileList();
 }
 
 async function checkOtpWarning() {
@@ -225,27 +258,14 @@ document.getElementById('saveTestBtn').onclick = async function() {
   editingTest.allowedEmails = parseAllowedEmails();
   editingTest.isPrivate     = qs('#editorPrivate').checked;
   editingTest.requireOTP    = qs('#editorRequireOTP').checked;
+  editingTest.downloads     = editingTest.downloads || [];
   const examSel             = qs('#editorExaminer');
   editingTest.examinerId    = examSel.value || '';
   editingTest.examinerName  = examSel.value ? (examSel.selectedOptions[0]?.dataset.name || '') : '';
 
   await DB.upsertTest(editingTest);
-
-  if (!editingTest.driveFolderId) {
-    this.textContent = 'Creating Drive folder…';
-    try {
-      const folderId = await DRIVE.ensureTestFolder(editingTest);
-      editingTest.driveFolderId = folderId;
-      await DB.upsertTest(editingTest);
-      toast('Test saved! Drive folder created.');
-    } catch (e) {
-      console.warn('Drive folder skipped:', e.message);
-      toast('Test saved! (Drive folder creation failed — check Apps Script URL in drive.js)', 'warning');
-    }
-  } else {
-    const otpStatus = editingTest.requireOTP ? 'Email OTP: ON' : 'Email OTP: OFF';
-    toast(`Test saved! (${otpStatus})`);
-  }
+  const otpStatus = editingTest.requireOTP ? 'Email OTP: ON' : 'Email OTP: OFF';
+  toast(`Test saved! (${otpStatus})`);
 
   editingTest = null;
   this.disabled    = false;
@@ -751,185 +771,7 @@ function renderSubAnswer(q, idx, ans) {
 qs('#subDetailClose').addEventListener('click', () => { qs('#subDetailOverlay').style.display = 'none'; });
 qs('#subDetailOverlay').addEventListener('click', e => { if (e.target === qs('#subDetailOverlay')) qs('#subDetailOverlay').style.display = 'none'; });
 
-/* ── Downloads Management — Google Drive per-exam folders ── */
-async function renderDownloadsList() {
-  const container = qs('#downloadsContent');
-  container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--gray-400)">Loading…</div>`;
 
-  const tests = (await DB.getTests()).filter(t => t.driveFolderId);
-
-  if (!tests.length) {
-    container.innerHTML = `
-      <div class="card"><div class="card-body" style="text-align:center;padding:2rem;color:var(--gray-400)">
-        No exam folders yet. Save a test — a Drive folder is created automatically.
-      </div></div>`;
-    return;
-  }
-
-  container.innerHTML = tests.map(t => `
-    <div class="card" style="margin-bottom:1rem">
-      <div class="card-body" style="padding:1.25rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <strong style="font-size:.9375rem">${escHtml(t.title)}</strong>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <button class="btn btn-ghost btn-sm" onclick="copyDlLink('${t.id}')">🔗 Copy Download Link</button>
-            <label class="btn btn-primary btn-sm" style="cursor:pointer;margin:0">
-              📤 Upload
-              <input type="file" multiple style="display:none"
-                onchange="uploadToDriveFolder('${t.id}','${t.driveFolderId}',this)">
-            </label>
-          </div>
-        </div>
-        <div id="folder_${t.id}" style="font-size:.875rem;color:var(--gray-400)">Loading…</div>
-      </div>
-    </div>`).join('');
-
-  for (const t of tests) {
-    await loadFolderFiles(t.id, t.driveFolderId);
-  }
-}
-
-async function loadFolderFiles(testId, folderId) {
-  const el = qs(`#folder_${testId}`);
-  if (!el) return true;
-  try {
-    const files = await DRIVE.listFolderFiles(folderId);
-    if (!files.length) {
-      el.innerHTML = `<span style="color:var(--gray-400)">No files yet — click Upload to add files.</span>`;
-      return true;
-    }
-    el.innerHTML = `
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr style="color:var(--gray-500);font-size:.75rem;text-transform:uppercase;border-bottom:1px solid var(--gray-200)">
-            <th style="text-align:left;padding:.35rem 0;font-weight:500">Name</th>
-            <th style="text-align:left;padding:.35rem 0;font-weight:500">Size</th>
-            <th style="text-align:right;padding:.35rem 0;font-weight:500">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${files.map(f => `
-            <tr style="border-bottom:1px solid var(--gray-100)">
-              <td style="padding:.45rem 0">📄 ${escHtml(f.name)}</td>
-              <td style="padding:.45rem 0;color:var(--gray-500)">${fmtFileSize(parseInt(f.size) || 0)}</td>
-              <td style="padding:.45rem 0;text-align:right">
-                <a href="https://drive.google.com/uc?export=download&id=${f.id}" target="_blank" class="btn btn-secondary btn-sm">↓ Download</a>
-                <button class="btn btn-danger btn-sm"
-                  onclick="deleteDriveFile('${testId}','${folderId}','${f.id}','${escHtml(f.name).replace(/'/g,"\\'")}')"
-                >Delete</button>
-              </td>
-            </tr>`).join('')}
-        </tbody>
-      </table>`;
-    return true;
-  } catch (e) {
-    el.innerHTML = `<span style="color:var(--gray-400);font-size:.8rem">⚠️ ${escHtml(e.message)}</span>`;
-  }
-}
-
-function copyDlLink(testId) {
-  const base = location.href.replace(/admin\.html.*$/, 'downloads.html');
-  const url  = `${base}?test=${testId}`;
-  navigator.clipboard.writeText(url)
-    .then(() => toast('Download link copied!'))
-    .catch(() => prompt('Copy this link:', url));
-}
-
-async function uploadToDriveFolder(testId, folderId, input) {
-  const files = Array.from(input.files);
-  if (!files.length) return;
-  input.value = '';
-  const test = await DB.getTest(testId);
-  const folderEl = qs(`#folder_${testId}`);
-  for (const file of files) {
-    if (folderEl) folderEl.innerHTML = `<span style="color:var(--gray-400)">Uploading ${escHtml(file.name)}…</span>`;
-    try {
-      const uploaded = await DRIVE.uploadFile(folderId, file);
-      await DB.upsertDriveFile({
-        id: uploaded.id, name: file.name, size: file.size,
-        testId, testTitle: test ? test.title : '', folderId,
-        uploadedAt: new Date().toISOString()
-      });
-      toast(`${file.name} uploaded!`);
-    } catch (e) {
-      toast(`Upload failed: ${e.message}`, 'danger');
-    }
-  }
-  await loadFolderFiles(testId, folderId);
-}
-
-async function deleteDriveFile(testId, folderId, fileId, fileName) {
-  if (!confirm(`Delete "${fileName}" from Google Drive? This cannot be undone.`)) return;
-  try {
-    await DRIVE.deleteFile(fileId);
-    await DB.deleteDriveFile(fileId);
-    toast('File deleted.', 'warning');
-    await loadFolderFiles(testId, folderId);
-  } catch (e) {
-    toast(`Delete failed: ${e.message}`, 'danger');
-  }
-}
-
-qs('#copyDlPageBtn').addEventListener('click', () => {
-  const url = `${location.origin}${location.pathname.replace('admin.html', '')}downloads.html`;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => toast('Download page link copied!')).catch(() => prompt('Copy this link:', url));
-  } else {
-    prompt('Copy this link:', url);
-  }
-});
-
-qs('#uploadConfirmBtn').addEventListener('click', async () => {
-  const name = qs('#uploadName').value.trim();
-  if (!name) { toast('Display name is required.', 'danger'); return; }
-  if (!_pendingFile) return;
-
-  if (!storage) { toast('Firebase Storage is not enabled. Enable it in Firebase Console first.', 'danger'); return; }
-  const btn = qs('#uploadConfirmBtn');
-  btn.disabled = true;
-  btn.textContent = 'Uploading…';
-  qs('#uploadProgressWrap').style.display = '';
-
-  const storagePath = `downloads/${Date.now()}_${_pendingFile.name}`;
-  const ref = storage.ref(storagePath);
-  const task = ref.put(_pendingFile);
-
-  task.on('state_changed',
-    snap => {
-      const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-      qs('#uploadProgressBar').style.width = pct + '%';
-      qs('#uploadProgressText').textContent = `Uploading… ${pct}%`;
-    },
-    err => {
-      alert('Upload failed:\n\n' + err.message + '\n\nCode: ' + err.code);
-      btn.disabled = false;
-      btn.textContent = 'Upload';
-      qs('#uploadProgressWrap').style.display = 'none';
-    },
-    async () => {
-      const url = await ref.getDownloadURL();
-      const dl = {
-        id: uid(), name, description: qs('#uploadDesc').value.trim(),
-        fileName: _pendingFile.name, fileSize: _pendingFile.size,
-        storagePath, url, enabled: true,
-        uploadedAt: new Date().toISOString()
-      };
-      await DB.upsertDownload(dl);
-      _pendingFile = null;
-      qs('#uploadModalOverlay').style.display = 'none';
-      toast('File uploaded!');
-      renderDownloadsList();
-    }
-  );
-});
-
-function closeUploadModal() {
-  qs('#uploadModalOverlay').style.display = 'none';
-  _pendingFile = null;
-}
-qs('#uploadModalClose').addEventListener('click', closeUploadModal);
-qs('#uploadModalCancel').addEventListener('click', closeUploadModal);
-qs('#uploadModalOverlay').addEventListener('click', e => { if (e.target === qs('#uploadModalOverlay')) closeUploadModal(); });
 
 /* ── Excel Import ── */
 qs('#importExcelBtn').addEventListener('click', () => {
