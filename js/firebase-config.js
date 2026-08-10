@@ -1,10 +1,10 @@
 const firebaseConfig = {
-  apiKey:            "AIzaSyBSRVqmF4VPYP-kLFIqc7doLiKPU8vvKH0",
-  authDomain:        "versa-test-portal.firebaseapp.com",
-  projectId:         "versa-test-portal",
-  storageBucket:     "versa-test-portal.firebasestorage.app",
-  messagingSenderId: "744975888968",
-  appId:             "1:744975888968:web:43597aa0d3f5784f30de7d"
+  apiKey:            "AIzaSyB78Z7dLmKtN52cOVgPpK1c6VvocZW9VlI",
+  authDomain:        "versa-test-portal-2.firebaseapp.com",
+  projectId:         "versa-test-portal-2",
+  storageBucket:     "versa-test-portal-2.firebasestorage.app",
+  messagingSenderId: "902267204107",
+  appId:             "1:902267204107:web:92acdfe03438d2a0060d0e"
 };
 
 firebase.initializeApp(firebaseConfig);
