@@ -68,7 +68,7 @@
       </button>
       <button class="admin-nav-item" data-view="downloads">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Downloads
+        SharePoint
       </button>
       <hr class="admin-nav-divider">
       <button class="admin-nav-item" data-view="examiners">
@@ -208,6 +208,9 @@
                     <input id="dlFileUrl" type="text" class="form-control" placeholder="SharePoint sharing link" style="flex:2;min-width:180px">
                     <button type="button" class="btn btn-secondary btn-sm" id="dlAddBtn" style="white-space:nowrap">+ Add</button>
                   </div>
+                  <div style="margin-top:.6rem;padding:.6rem .75rem;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:.8rem;color:#92400e;line-height:1.5">
+                    <strong>Note:</strong> Log in to SharePoint using your O365 ID and locate the uploaded file. Click the three dots (<strong>⋯</strong>) → <strong>Manage Access</strong> → <strong>Links</strong>, then copy the <em>"Anyone with the link can view"</em> link and paste it here.
+                  </div>
                 </div>
               </div>
             </div>
@@ -310,7 +313,7 @@
       <!-- ── Downloads View ── -->
       <div id="view_downloads" class="admin-view" style="display:none">
         <div style="margin-bottom:1.5rem">
-          <div class="page-title">Downloads</div>
+          <div class="page-title">SharePoint</div>
           <div class="page-subtitle">Training materials are hosted on SharePoint.</div>
         </div>
         <div class="card">
