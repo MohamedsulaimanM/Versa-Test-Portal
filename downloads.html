@@ -80,99 +80,19 @@
 </div>
 
 <div class="dl-wrap">
-  <div id="dlContent"><div class="dl-empty">Loading…</div></div>
+  <div style="text-align:center;padding:3rem 1rem">
+    <div style="font-size:3rem;margin-bottom:1rem">📁</div>
+    <h2 style="margin-bottom:.5rem">Training Materials</h2>
+    <p style="color:var(--gray-500);margin-bottom:2rem">All training materials and resources are hosted on SharePoint.</p>
+    <a href="https://versanetworks.sharepoint.com/:f:/g/IgAEhhHXCJCxQIqNOG6SFdZIAW7S9-BKJ59Oa0xnYtxd5Fo?e=g57niV"
+       target="_blank"
+       class="btn btn-primary"
+       style="font-size:1rem;padding:.75rem 2rem">
+      Open SharePoint Folder
+    </a>
+    <p style="color:var(--gray-400);font-size:.8rem;margin-top:1rem">Opens in a new tab — Versa Networks SharePoint access required.</p>
+  </div>
 </div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="js/firebase-config.js?v=2"></script>
-<script>
-(async () => {
-  // Same Apps Script URL used by the portals — reads Drive directly, no Firestore sync needed
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWq22C2DBLXNflxVpe2nyCEayzPSVXDNfdyDAsaLN2rnrflaKsEDuR9wfA8VEEwzU7zA/exec';
-
-  const container   = document.getElementById('dlContent');
-  const filterTestId = new URLSearchParams(location.search).get('test');
-
-  function fmtSize(bytes) {
-    bytes = parseInt(bytes) || 0;
-    if (!bytes) return '';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-  }
-  function esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  async function listFiles(folderId) {
-    const res  = await fetch(`${SCRIPT_URL}?${new URLSearchParams({ action: 'listFiles', folderId })}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    return data.files || [];
-  }
-
-  try {
-    // Load tests that have Drive folders from Firestore
-    const db   = firebase.firestore();
-    const snap = await db.collection('tests').get();
-    let tests  = snap.docs.map(d => d.data()).filter(t => t.driveFolderId);
-
-    if (filterTestId) tests = tests.filter(t => t.id === filterTestId);
-
-    if (!tests.length) {
-      container.innerHTML = `<div class="dl-empty">No exam folders available yet.</div>`;
-      return;
-    }
-
-    // Update hero subtitle when filtered to one exam
-    if (filterTestId && tests.length === 1) {
-      const heroP = document.querySelector('.hero p');
-      if (heroP) heroP.textContent = tests[0].title || 'Exam Downloads';
-    }
-
-    container.innerHTML = `<div class="dl-empty">Loading files…</div>`;
-
-    // Fetch file list for each folder in parallel
-    const results = await Promise.all(tests.map(async t => {
-      try   { return { t, files: await listFiles(t.driveFolderId) }; }
-      catch (_) { return { t, files: [] }; }
-    }));
-
-    const withFiles = results.filter(r => r.files.length > 0);
-
-    if (!withFiles.length) {
-      container.innerHTML = `<div class="dl-empty">No files available yet. Check back later.</div>`;
-      return;
-    }
-
-    container.innerHTML = withFiles.map(({ t, files }) => `
-      <div class="dl-folder">
-        <div class="dl-folder-header">
-          <span style="font-size:1.2rem">📁</span>
-          <span class="dl-folder-name">${esc(t.title)}</span>
-          <span class="dl-folder-count">${files.length} file${files.length !== 1 ? 's' : ''}</span>
-          <button class="dl-copy-btn" onclick="copyFolderLink('${t.id}')">🔗 Copy Link</button>
-        </div>
-        ${files.map(f => `
-          <div class="dl-file-row">
-            <span class="dl-file-name">📄 ${esc(f.name)}</span>
-            <span class="dl-file-size">${fmtSize(f.size)}</span>
-            <a class="dl-btn" href="https://drive.google.com/uc?export=download&id=${f.id}" target="_blank">↓ Download</a>
-          </div>`).join('')}
-      </div>`).join('');
-
-  } catch (e) {
-    container.innerHTML = `<div class="dl-empty">Could not load files. Please try again later.</div>`;
-    console.error(e);
-  }
-})();
-
-function copyFolderLink(testId) {
-  const url = `${location.origin}${location.pathname}?test=${testId}`;
-  navigator.clipboard.writeText(url)
-    .then(() => alert('Link copied!\n' + url))
-    .catch(() => prompt('Copy this link:', url));
-}
-</script>
 
 </body>
 </html>
