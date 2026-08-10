@@ -746,7 +746,7 @@ qs('#examExcelFileInput').addEventListener('change', e => {
 });
 
 /* ── Download CSV Template ── */
-qs('#examDlTemplateBtn').addEventListener('click', () => {
+function downloadExamTemplate() {
   const rows = [
     ['Type', 'Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Answer', 'Points'],
     ['single',    'What is 2 + 2?',               '3', '4', '5', '6',  'B',     '1'],
@@ -760,7 +760,10 @@ qs('#examDlTemplateBtn').addEventListener('click', () => {
   a.download = 'question_template.csv';
   a.click();
   toast('Template downloaded!');
-});
+}
+
+qs('#examDlTemplateBtn').addEventListener('click', downloadExamTemplate);
+qs('#examDlTemplateBtnMain').addEventListener('click', downloadExamTemplate);
 
 /* ════════════════════════════════════════════
    RESULTS
