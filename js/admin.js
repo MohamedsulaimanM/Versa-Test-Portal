@@ -161,21 +161,8 @@ function renderEditor() {
 }
 
 /* ── Download Files ── */
-function renderDlFileList() {
-  const files = editingTest.downloads || [];
-  const el    = qs('#dlFileList');
-  if (!files.length) {
-    el.innerHTML = `<div style="color:var(--gray-400);font-size:.85rem;padding:.4rem 0">No files added yet.</div>`;
-    return;
-  }
-  el.innerHTML = files.map((f, i) => `
-    <div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--gray-100)">
-      <span style="flex:1;font-size:.875rem">📄 ${escHtml(f.name)}</span>
-      <button class="btn btn-danger btn-sm" onclick="removeDownloadFile(${i})">✕</button>
-    </div>`).join('');
-}
-
-function addDownloadFile() {
+document.getElementById('dlAddBtn').addEventListener('click', () => {
+  if (!editingTest) return;
   const name = qs('#dlFileName').value.trim();
   const url  = qs('#dlFileUrl').value.trim();
   if (!name) { toast('Enter a file name.', 'warning'); return; }
@@ -186,9 +173,25 @@ function addDownloadFile() {
   qs('#dlFileUrl').value  = '';
   renderDlFileList();
   toast('File added.');
+});
+
+function renderDlFileList() {
+  const files = editingTest ? (editingTest.downloads || []) : [];
+  const el    = qs('#dlFileList');
+  if (!el) return;
+  if (!files.length) {
+    el.innerHTML = `<div style="color:var(--gray-400);font-size:.8rem;padding:.2rem 0">No files added yet.</div>`;
+    return;
+  }
+  el.innerHTML = files.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--gray-100)">
+      <span style="flex:1;font-size:.875rem">📄 ${escHtml(f.name)}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeDownloadFile(${i})">✕</button>
+    </div>`).join('');
 }
 
 function removeDownloadFile(idx) {
+  if (!editingTest) return;
   editingTest.downloads.splice(idx, 1);
   renderDlFileList();
 }

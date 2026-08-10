@@ -198,6 +198,17 @@
                 <div id="otpNotConfiguredWarn" style="display:none;margin-top:.5rem" class="alert alert-danger">
                   ⚠ EmailJS is not configured. Go to <strong>Settings → Email OTP Verification</strong> to set it up before enabling this.
                 </div>
+                <hr class="divider">
+                <div class="form-group">
+                  <label class="form-label">Download Files</label>
+                  <div class="form-hint" style="margin-bottom:.5rem">Test takers see a download button per file — the SharePoint URL is never shown.</div>
+                  <div id="dlFileList" style="margin-bottom:.5rem"></div>
+                  <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+                    <input id="dlFileName" type="text" class="form-control" placeholder="File name (e.g. Study Guide)" style="flex:1;min-width:130px">
+                    <input id="dlFileUrl" type="text" class="form-control" placeholder="SharePoint sharing link" style="flex:2;min-width:180px">
+                    <button type="button" class="btn btn-secondary btn-sm" id="dlAddBtn" style="white-space:nowrap">+ Add</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -221,22 +232,6 @@
           </div>
         </div>
 
-        <!-- Downloads Card -->
-        <div class="card" style="margin-top:1.5rem">
-          <div class="card-header">
-            <h3>Download Files</h3>
-            <span style="font-size:.8rem;color:var(--gray-500)">Files test takers can download from the downloads page</span>
-          </div>
-          <div class="card-body">
-            <div id="dlFileList"></div>
-            <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;align-items:center">
-              <input id="dlFileName" type="text" class="form-control" placeholder="File name (e.g. Study Guide)" style="flex:1;min-width:140px">
-              <input id="dlFileUrl" type="url" class="form-control" placeholder="SharePoint sharing link" style="flex:2;min-width:220px">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="addDownloadFile()" style="white-space:nowrap">+ Add File</button>
-            </div>
-            <div class="form-hint" style="margin-top:.4rem">Paste the SharePoint sharing link for each file. Test takers only see a download button — the URL is never shown.</div>
-          </div>
-        </div>
       </div>
 
       <!-- ── Results View ── -->
