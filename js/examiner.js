@@ -265,19 +265,19 @@ qs('#msLoginBtn').addEventListener('click', async () => {
         name,
         email,
         password:  '',
-        status:    'approved',
+        status:    'pending',
         authType:  'o365',
         createdAt: new Date().toISOString()
       };
       await DB.upsertExaminer(examiner);
-    } else if (examiner.status !== 'approved') {
-      examiner.status   = 'approved';
-      examiner.authType = 'o365';
-      await DB.upsertExaminer(examiner);
     }
 
-    examSess.set({ id: examiner.id, name: examiner.name, email: examiner.email });
-    showExamApp();
+    if (examiner.status === 'approved') {
+      examSess.set({ id: examiner.id, name: examiner.name, email: examiner.email });
+      showExamApp();
+    } else {
+      showPending(examiner.status);
+    }
 
   } catch (e) {
     if (e.errorCode !== 'user_cancelled') {
