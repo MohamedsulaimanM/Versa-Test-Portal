@@ -418,6 +418,7 @@ async function saveExamTest() {
   const btn   = qs('#examSaveTestBtn');
   const title = qs('#examEditorTitle').value.trim();
   if (!title) { toast('Test title is required.', 'danger'); return; }
+  if (!examParseAllowedEmails().length) { toast('At least one allowed email is required.', 'danger'); return; }
 
   btn.disabled    = true;
   btn.textContent = 'Saving…';

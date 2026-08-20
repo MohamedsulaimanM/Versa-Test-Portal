@@ -251,6 +251,7 @@ function renderQList() {
 document.getElementById('saveTestBtn').onclick = async function() {
   const title = qs('#editorTitle').value.trim();
   if (!title) { toast('Test title is required.', 'danger'); return; }
+  if (!parseAllowedEmails().length) { toast('At least one allowed email is required.', 'danger'); return; }
 
   this.disabled    = true;
   this.textContent = 'Saving…';
