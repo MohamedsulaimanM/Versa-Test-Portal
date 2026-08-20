@@ -194,11 +194,21 @@ async function initO365() {
 function loadMsal() {
   return new Promise((resolve, reject) => {
     if (window.msal) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = 'https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js';
-    s.onload  = resolve;
-    s.onerror = () => reject(new Error('Failed to load MSAL.'));
-    document.head.appendChild(s);
+    const urls = [
+      'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js',
+      'https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js',
+      'https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js'
+    ];
+    let idx = 0;
+    function tryNext() {
+      if (idx >= urls.length) { reject(new Error('Could not load Microsoft sign-in library. Check your network and try again.')); return; }
+      const s = document.createElement('script');
+      s.src = urls[idx++];
+      s.onload  = resolve;
+      s.onerror = tryNext;
+      document.head.appendChild(s);
+    }
+    tryNext();
   });
 }
 
