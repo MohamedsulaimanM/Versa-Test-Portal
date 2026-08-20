@@ -233,12 +233,13 @@ qs('#msLoginBtn').addEventListener('click', async () => {
       auth: {
         clientId:    _o365Config.clientId,
         authority:   `https://login.microsoftonline.com/${_o365Config.tenantId || 'common'}`,
-        redirectUri: window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/'),
+        redirectUri: window.location.origin + '/examiner.html',
       },
       cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
     });
 
     await msalApp.initialize();
+    await msalApp.handleRedirectPromise();
 
     const result = await msalApp.loginPopup({
       scopes: ['openid', 'profile', 'email'],
