@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!qs('#testsGrid')) return; // listing elements not present on this page
   const grid    = qs('#testsGrid');
   const empty   = qs('#emptyState');
   const countEl = qs('#testCount');

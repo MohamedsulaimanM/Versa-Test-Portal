@@ -4,7 +4,7 @@ let otpState = null, originalQuestions = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   const testId = param('id');
-  if (!testId) { location.href = 'index.html'; return; }
+  if (!testId) { showView('listing'); return; }
 
   await window.seedReady;
 
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function showView(name) {
-  ['notFound','register','testView'].forEach(v => {
+  ['listing','notFound','register','testView'].forEach(v => {
     const el = qs(`#${v}`);
     if (el) el.style.display = v === name ? '' : 'none';
   });

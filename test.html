@@ -14,6 +14,31 @@
   </span>
 </nav>
 
+<!-- Test Listing (shown when no ?id param) -->
+<div id="listing" style="display:none">
+  <div class="hero">
+    <h1>Versa Online Test</h1>
+    <p>Browse available tests, enter your details, and start your test.</p>
+    <div class="hero-search">
+      <input id="searchInput" type="text" class="form-control" placeholder="Search tests by name…">
+    </div>
+  </div>
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Available Tests</h2>
+      <span id="testCount" class="badge badge-primary"></span>
+    </div>
+    <div id="testsGrid" class="tests-grid"></div>
+    <div id="emptyState" class="empty-state" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 12h6M9 16h6M9 8h6M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <h3>No tests available</h3>
+      <p>Check back later or contact your administrator.</p>
+    </div>
+  </div>
+</div>
+
 <!-- Not Found -->
 <div id="notFound" style="display:none">
   <div class="empty-state" style="margin-top:5rem">
@@ -117,9 +142,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="js/firebase-config.js?v=2"></script>
-<script src="js/storage.js?v=2"></script>
+<script src="js/storage.js?v=9"></script>
 <script src="js/seed.js?v=2"></script>
 <script src="js/utils.js?v=2"></script>
-<script src="js/test.js?v=2"></script>
+<script src="js/index.js?v=4"></script>
+<script src="js/test.js?v=3"></script>
 </body>
 </html>
