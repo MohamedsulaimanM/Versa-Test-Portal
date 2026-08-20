@@ -303,15 +303,20 @@ async function handleRegister() {
 
   try {
     const allowedDomains = await DB.getExaminerDomains();
-    if (allowedDomains.length > 0) {
-      const emailDomain = email.split('@')[1] || '';
-      if (!allowedDomains.includes(emailDomain)) {
-        err.textContent   = `Registration is restricted. Your email domain (@${emailDomain}) is not allowed.`;
-        err.style.display = 'block';
-        btn.disabled      = false;
-        btn.textContent   = 'Create Account';
-        return;
-      }
+    if (!allowedDomains.length) {
+      err.textContent   = 'Registration is currently not available. Contact the administrator.';
+      err.style.display = 'block';
+      btn.disabled      = false;
+      btn.textContent   = 'Create Account';
+      return;
+    }
+    const emailDomain = email.split('@')[1] || '';
+    if (!allowedDomains.includes(emailDomain)) {
+      err.textContent   = `Registration is restricted. Your email domain (@${emailDomain}) is not allowed.`;
+      err.style.display = 'block';
+      btn.disabled      = false;
+      btn.textContent   = 'Create Account';
+      return;
     }
 
     const existing = await DB.getExaminerByEmail(email);
