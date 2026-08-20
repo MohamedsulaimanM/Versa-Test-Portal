@@ -77,6 +77,15 @@ const DB = {
     await db.collection('config').doc('seeded').set({ v1: true });
   },
 
+  /* ── Examiner Domain Whitelist ── */
+  async getExaminerDomains() {
+    const doc = await db.collection('config').doc('examinerDomains').get();
+    return doc.exists ? (doc.data().domains || []) : [];
+  },
+  async setExaminerDomains(domains) {
+    await db.collection('config').doc('examinerDomains').set({ domains });
+  },
+
   /* ── EmailJS Config ── */
   async getEmailJS() {
     const doc = await db.collection('config').doc('emailjs').get();

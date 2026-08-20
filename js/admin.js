@@ -631,8 +631,30 @@ qs('#changePwBtn').addEventListener('click', async () => {
 
 qs('#logoutBtn').addEventListener('click', () => { adminSess.clear(); location.reload(); });
 
+/* ── Examiner Domain Whitelist ── */
+async function loadExaminerDomains() {
+  const domains = await DB.getExaminerDomains();
+  qs('#examinerDomainsInput').value = domains.join('\n');
+}
+
+document.getElementById('saveExaminerDomainsBtn').onclick = async function() {
+  const domains = (qs('#examinerDomainsInput').value || '')
+    .split('\n').map(d => d.trim().toLowerCase()).filter(d => d.length > 0);
+  this.disabled = true;
+  this.textContent = 'Saving…';
+  try {
+    await DB.setExaminerDomains(domains);
+    toast(domains.length ? `${domains.length} domain${domains.length > 1 ? 's' : ''} saved.` : 'Domain restriction removed.');
+  } catch(e) {
+    alert('Save failed: ' + e.message);
+  }
+  this.disabled = false;
+  this.textContent = 'Save Domains';
+};
+
 /* ── EmailJS Config ── */
 async function loadEmailJSConfig() {
+  loadExaminerDomains();
   const cfg    = await DB.getEmailJS();
   const badge  = qs('#ejsStatusBadge');
   badge.style.display = '';

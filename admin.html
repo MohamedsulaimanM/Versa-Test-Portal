@@ -392,6 +392,20 @@
         </div>
 
         <div class="card" style="max-width:480px;margin-top:1.5rem">
+          <div class="card-header"><h3>Allowed Examiner Domains</h3></div>
+          <div class="card-body">
+            <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1.25rem">
+              Only users with these email domains can request an examiner account. One domain per line (e.g. <code>versa-networks.com</code>). Leave empty to allow anyone.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Allowed Domains</label>
+              <textarea id="examinerDomainsInput" class="form-control" rows="4" placeholder="versa-networks.com&#10;example.com"></textarea>
+            </div>
+            <button id="saveExaminerDomainsBtn" class="btn btn-primary">Save Domains</button>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:480px;margin-top:1.5rem">
           <div class="card-header"><h3>Email OTP Verification</h3></div>
           <div class="card-body">
             <div id="ejsStatusBadge" style="margin-bottom:1rem;display:none"></div>
@@ -508,10 +522,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script src="js/firebase-config.js?v=4"></script>
-<script src="js/storage.js?v=6"></script>
+<script src="js/storage.js?v=7"></script>
 <script src="js/seed.js?v=4"></script>
 <script src="js/utils.js?v=4"></script>
 <script src="js/drive.js?v=4"></script>
-<script src="js/admin.js?v=17"></script>
+<script src="js/admin.js?v=18"></script>
 </body>
 </html>
