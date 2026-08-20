@@ -54,6 +54,12 @@ const DB = {
       await batch.commit();
     }
   },
+  async clearSubsByIds(ids) {
+    if (!ids.length) return;
+    const batch = db.batch();
+    ids.forEach(id => batch.delete(db.collection('submissions').doc(id)));
+    await batch.commit();
+  },
 
   /* ── Admin ── */
   async isConfigured() {

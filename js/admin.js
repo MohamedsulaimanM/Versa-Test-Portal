@@ -581,12 +581,25 @@ qs('#resultTestFilter').addEventListener('change', renderResultsList);
 qs('#resultExaminerFilter').addEventListener('change', renderResultsList);
 
 qs('#clearResultsBtn').addEventListener('click', async () => {
-  const filterTestId = qs('#resultTestFilter').value;
-  const label = filterTestId ? 'results for this test' : 'ALL results';
+  const filterTestId     = qs('#resultTestFilter').value;
+  const filterExaminerId = qs('#resultExaminerFilter').value;
+
+  let label = 'ALL results';
+  if (filterTestId && filterExaminerId) label = 'results for this test and examiner';
+  else if (filterTestId)     label = 'results for this test';
+  else if (filterExaminerId) label = 'results for this examiner';
+
   if (!confirm(`Are you sure you want to delete ${label}? This cannot be undone.`)) return;
 
   qs('#clearResultsBtn').disabled = true;
-  await DB.clearSubs(filterTestId || null);
+  if (filterExaminerId) {
+    let subs = await DB.getSubs();
+    if (filterTestId)     subs = subs.filter(s => s.testId     === filterTestId);
+    if (filterExaminerId) subs = subs.filter(s => s.examinerId === filterExaminerId);
+    await DB.clearSubsByIds(subs.map(s => s.id));
+  } else {
+    await DB.clearSubs(filterTestId || null);
+  }
   qs('#clearResultsBtn').disabled = false;
   await renderResultsList();
   toast('Results cleared.', 'success');
