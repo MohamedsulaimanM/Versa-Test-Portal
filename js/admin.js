@@ -652,9 +652,54 @@ document.getElementById('saveExaminerDomainsBtn').onclick = async function() {
   this.textContent = 'Save Domains';
 };
 
+/* ── O365 Config ── */
+async function loadO365Config() {
+  const cfg   = await DB.getO365Config();
+  const badge = qs('#o365StatusBadge');
+  badge.style.display = '';
+  if (cfg && cfg.clientId) {
+    badge.innerHTML = '<span class="badge badge-success">O365 Sign-In Enabled</span>';
+    qs('#o365ClientId').value = cfg.clientId  || '';
+    qs('#o365TenantId').value = cfg.tenantId  || '';
+    qs('#o365Domain').value   = cfg.domain    || '';
+  } else {
+    badge.innerHTML = '<span class="badge badge-gray">O365 Sign-In Disabled</span>';
+    qs('#o365ClientId').value = qs('#o365TenantId').value = qs('#o365Domain').value = '';
+  }
+}
+
+document.getElementById('saveO365Btn').onclick = async function() {
+  const clientId = qs('#o365ClientId').value.trim();
+  const tenantId = qs('#o365TenantId').value.trim() || 'common';
+  const domain   = qs('#o365Domain').value.trim().toLowerCase();
+  if (!clientId) { toast('Client ID is required.', 'danger'); return; }
+  if (!domain)   { toast('Allowed domain is required.', 'danger'); return; }
+  this.disabled = true; this.textContent = 'Saving…';
+  try {
+    await DB.setO365Config({ clientId, tenantId, domain });
+    qs('#o365StatusBadge').style.display = '';
+    qs('#o365StatusBadge').innerHTML = '<span class="badge badge-success">O365 Sign-In Enabled</span>';
+    toast('O365 sign-in enabled for @' + domain);
+  } catch(e) { alert('Save failed: ' + e.message); }
+  this.disabled = false; this.textContent = 'Save & Enable';
+};
+
+document.getElementById('clearO365Btn').onclick = async function() {
+  if (!confirm('Disable O365 sign-in? Examiners will need to use email/password.')) return;
+  this.disabled = true;
+  try {
+    await DB.clearO365Config();
+    qs('#o365StatusBadge').innerHTML = '<span class="badge badge-gray">O365 Sign-In Disabled</span>';
+    qs('#o365ClientId').value = qs('#o365TenantId').value = qs('#o365Domain').value = '';
+    toast('O365 sign-in disabled.', 'warning');
+  } catch(e) { alert('Error: ' + e.message); }
+  this.disabled = false;
+};
+
 /* ── EmailJS Config ── */
 async function loadEmailJSConfig() {
   loadExaminerDomains();
+  loadO365Config();
   const cfg    = await DB.getEmailJS();
   const badge  = qs('#ejsStatusBadge');
   badge.style.display = '';

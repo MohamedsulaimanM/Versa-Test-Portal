@@ -406,6 +406,34 @@
         </div>
 
         <div class="card" style="max-width:480px;margin-top:1.5rem">
+          <div class="card-header"><h3>O365 / Microsoft Sign-In</h3></div>
+          <div class="card-body">
+            <div id="o365StatusBadge" style="margin-bottom:1rem;display:none"></div>
+            <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1.25rem">
+              When configured, examiners with the specified domain can sign in using their Microsoft O365 account — no password needed. Requires an Azure AD app registration with this site's URL as a redirect URI.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Azure AD Client ID <span class="req">*</span></label>
+              <input id="o365ClientId" type="text" class="form-control" placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tenant ID</label>
+              <input id="o365TenantId" type="text" class="form-control" placeholder="common  (or your Azure tenant ID)" autocomplete="off">
+              <div class="form-hint">Use <code>common</code> for any Microsoft account, or your specific tenant ID.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Allowed Domain <span class="req">*</span></label>
+              <input id="o365Domain" type="text" class="form-control" placeholder="e.g. versa-networks.com" autocomplete="off">
+              <div class="form-hint">Only O365 accounts with this email domain will be accepted.</div>
+            </div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button id="saveO365Btn" class="btn btn-primary">Save &amp; Enable</button>
+              <button id="clearO365Btn" class="btn btn-secondary">Disable</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:480px;margin-top:1.5rem">
           <div class="card-header"><h3>Email OTP Verification</h3></div>
           <div class="card-body">
             <div id="ejsStatusBadge" style="margin-bottom:1rem;display:none"></div>
@@ -522,10 +550,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script src="js/firebase-config.js?v=4"></script>
-<script src="js/storage.js?v=7"></script>
+<script src="js/storage.js?v=8"></script>
 <script src="js/seed.js?v=4"></script>
 <script src="js/utils.js?v=4"></script>
 <script src="js/drive.js?v=4"></script>
-<script src="js/admin.js?v=18"></script>
+<script src="js/admin.js?v=19"></script>
 </body>
 </html>

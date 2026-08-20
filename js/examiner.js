@@ -76,6 +76,7 @@ function showAuth() {
   qs('#authScreen').style.display    = '';
   qs('#pendingScreen').style.display = 'none';
   qs('#appScreen').style.display     = 'none';
+  initO365();
 }
 
 function showPending(status) {
@@ -176,6 +177,107 @@ async function handleLogin() {
     btn.textContent   = 'Login';
   }
 }
+
+/* ════════════════════════════════════════════
+   O365 / MICROSOFT LOGIN
+════════════════════════════════════════════ */
+
+let _o365Config = null;
+
+async function initO365() {
+  _o365Config = await DB.getO365Config();
+  if (_o365Config && _o365Config.clientId) {
+    qs('#msLoginSection').style.display = '';
+  }
+}
+
+function loadMsal() {
+  return new Promise((resolve, reject) => {
+    if (window.msal) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js';
+    s.onload  = resolve;
+    s.onerror = () => reject(new Error('Failed to load MSAL.'));
+    document.head.appendChild(s);
+  });
+}
+
+qs('#msLoginBtn').addEventListener('click', async () => {
+  const btn = qs('#msLoginBtn');
+  const err = qs('#authError');
+  err.style.display = 'none';
+
+  if (!_o365Config || !_o365Config.clientId) {
+    err.textContent = 'O365 sign-in is not configured.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Opening Microsoft login…';
+
+  try {
+    await loadMsal();
+
+    const msalApp = new msal.PublicClientApplication({
+      auth: {
+        clientId:    _o365Config.clientId,
+        authority:   `https://login.microsoftonline.com/${_o365Config.tenantId || 'common'}`,
+        redirectUri: window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/'),
+      },
+      cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
+    });
+
+    await msalApp.initialize();
+
+    const result = await msalApp.loginPopup({
+      scopes: ['openid', 'profile', 'email'],
+      prompt: 'select_account'
+    });
+
+    const email  = (result.account.username || '').toLowerCase();
+    const domain = email.split('@')[1] || '';
+
+    if (domain !== (_o365Config.domain || '').toLowerCase()) {
+      err.textContent   = `O365 sign-in is only available for @${_o365Config.domain} accounts.`;
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg> Sign in with Microsoft';
+      return;
+    }
+
+    const name = result.account.name || email.split('@')[0];
+    let examiner = await DB.getExaminerByEmail(email);
+
+    if (!examiner) {
+      examiner = {
+        id:        uid(),
+        name,
+        email,
+        password:  '',
+        status:    'approved',
+        authType:  'o365',
+        createdAt: new Date().toISOString()
+      };
+      await DB.upsertExaminer(examiner);
+    } else if (examiner.status !== 'approved') {
+      examiner.status   = 'approved';
+      examiner.authType = 'o365';
+      await DB.upsertExaminer(examiner);
+    }
+
+    examSess.set({ id: examiner.id, name: examiner.name, email: examiner.email });
+    showExamApp();
+
+  } catch (e) {
+    if (e.errorCode !== 'user_cancelled') {
+      err.textContent   = 'Microsoft sign-in failed: ' + (e.message || e.errorCode || e);
+      err.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg> Sign in with Microsoft';
+  }
+});
 
 /* ════════════════════════════════════════════
    REGISTER

@@ -77,6 +77,18 @@ const DB = {
     await db.collection('config').doc('seeded').set({ v1: true });
   },
 
+  /* ── O365 / Azure AD Config ── */
+  async getO365Config() {
+    const doc = await db.collection('config').doc('o365').get();
+    return doc.exists ? doc.data() : null;
+  },
+  async setO365Config(cfg) {
+    await db.collection('config').doc('o365').set(cfg);
+  },
+  async clearO365Config() {
+    await db.collection('config').doc('o365').delete();
+  },
+
   /* ── Examiner Domain Whitelist ── */
   async getExaminerDomains() {
     const doc = await db.collection('config').doc('examinerDomains').get();
