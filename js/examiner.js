@@ -417,7 +417,7 @@ async function renderExamTests() {
             <button class="btn btn-ghost btn-sm" onclick="examCopyLink('${t.id}')">Copy Test Link</button>
             <button class="btn btn-ghost btn-sm" onclick="examCopyDlLink('${t.id}')">📥 Download Link</button>
             <button class="btn btn-ghost btn-sm" onclick="examExportTemplate('${t.id}')">&#8659; Export Template</button>
-            <button class="btn btn-danger btn-sm" onclick="examDeleteTest('${t.id}')">Delete</button>
+            ${t.createdByExaminer ? `<button class="btn btn-danger btn-sm" onclick="examDeleteTest('${t.id}')">Delete</button>` : ''}
           </div>
         </td>
       </tr>`;
@@ -431,15 +431,16 @@ async function renderExamTests() {
 function openExamCreateTest() {
   const sess = examSess.get();
   examEditingTest = {
-    id:          uid(),
-    title:       '',
-    description: '',
-    timeLimit:   0,
-    passingScore: 70,
-    published:   false,
-    questions:   [],
-    examinerId:  sess ? sess.id : '',
-    createdAt:   new Date().toISOString()
+    id:                uid(),
+    title:             '',
+    description:       '',
+    timeLimit:         0,
+    passingScore:      70,
+    published:         false,
+    questions:         [],
+    examinerId:        sess ? sess.id : '',
+    createdByExaminer: true,
+    createdAt:         new Date().toISOString()
   };
   renderExamEditor();
 }
